@@ -16,8 +16,8 @@
  */
 package org.exoplatform.ws.frameworks.cometd.transport;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.EndpointConfig;

@@ -21,7 +21,7 @@ package org.exoplatform.platform.webui.templates;
 import org.exoplatform.portal.application.PortalApplication;
 import org.exoplatform.portal.application.PortalApplicationFactory;
 
-import javax.servlet.ServletConfig;
+import jakarta.servlet.ServletConfig;
 
 
 public class PlatformPortalApplicationFactory implements PortalApplicationFactory {

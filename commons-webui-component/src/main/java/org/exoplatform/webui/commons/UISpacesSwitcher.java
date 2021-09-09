@@ -47,7 +47,7 @@ import org.exoplatform.webui.event.EventListener;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Created by The eXo Platform SAS

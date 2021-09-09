@@ -21,7 +21,7 @@
 --%>
 
 <%@ page import="java.net.URLEncoder"%>
-<%@ page import="javax.servlet.http.Cookie"%>
+<%@ page import="jakarta.servlet.http.Cookie"%>
 <%@ page import="org.exoplatform.web.login.LoginError"%>
 <%@ page import="org.exoplatform.container.PortalContainer"%>
 <%@ page import="org.exoplatform.services.resources.ResourceBundleService"%>

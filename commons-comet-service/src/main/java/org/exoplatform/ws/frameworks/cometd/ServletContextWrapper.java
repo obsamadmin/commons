@@ -22,17 +22,17 @@
   
 package org.exoplatform.ws.frameworks.cometd;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterRegistration;
-import javax.servlet.FilterRegistration.Dynamic;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
-import javax.servlet.SessionCookieConfig;
-import javax.servlet.SessionTrackingMode;
-import javax.servlet.descriptor.JspConfigDescriptor;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterRegistration;
+import jakarta.servlet.FilterRegistration.Dynamic;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRegistration;
+import jakarta.servlet.SessionCookieConfig;
+import jakarta.servlet.SessionTrackingMode;
+import jakarta.servlet.descriptor.JspConfigDescriptor;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -87,19 +87,24 @@ public class ServletContextWrapper implements ServletContext {
   }
 
   @Override
-  public javax.servlet.ServletRegistration.Dynamic addServlet(String arg0, String arg1) {
+  public jakarta.servlet.ServletRegistration.Dynamic addServlet(String arg0, String arg1) {
     return delegate.addServlet(arg0, arg1);
   }
 
   @Override
-  public javax.servlet.ServletRegistration.Dynamic addServlet(String arg0, Servlet arg1) {
+  public jakarta.servlet.ServletRegistration.Dynamic addServlet(String arg0, Servlet arg1) {
     return delegate.addServlet(arg0, arg1);
   }
 
   @Override
-  public javax.servlet.ServletRegistration.Dynamic addServlet(String arg0,
+  public jakarta.servlet.ServletRegistration.Dynamic addServlet(String arg0,
                                                               Class<? extends Servlet> arg1) {
     return delegate.addServlet(arg0, arg1);
+  }
+
+  @Override
+  public ServletRegistration.Dynamic addJspFile(String servletName, String jspFile) {
+    return delegate.addJspFile(servletName, jspFile);
   }
 
   @Override
@@ -331,5 +336,35 @@ public class ServletContextWrapper implements ServletContext {
   @Override
   public String getVirtualServerName() {
     return delegate.getVirtualServerName();
-  } 
+  }
+
+  @Override
+  public int getSessionTimeout() {
+    return delegate.getSessionTimeout();
+  }
+
+  @Override
+  public void setSessionTimeout(int sessionTimeout) {
+    delegate.setSessionTimeout(sessionTimeout);
+  }
+
+  @Override
+  public String getRequestCharacterEncoding() {
+    return delegate.getRequestCharacterEncoding();
+  }
+
+  @Override
+  public void setRequestCharacterEncoding(String encoding) {
+    delegate.setRequestCharacterEncoding(encoding);
+  }
+
+  @Override
+  public String getResponseCharacterEncoding() {
+    return delegate.getResponseCharacterEncoding();
+  }
+
+  @Override
+  public void setResponseCharacterEncoding(String encoding) {
+    delegate.setResponseCharacterEncoding(encoding);
+  }
 }

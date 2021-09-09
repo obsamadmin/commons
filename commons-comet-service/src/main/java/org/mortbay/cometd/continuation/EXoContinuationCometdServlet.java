@@ -17,12 +17,10 @@ package org.mortbay.cometd.continuation;
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  */
 
-import javax.servlet.AsyncContext;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -64,7 +62,7 @@ import org.exoplatform.ws.frameworks.cometd.ServletContextWrapper;
 
 public class EXoContinuationCometdServlet extends CometDServlet {
 
-  private static final long     serialVersionUID   = 9204910608302112814L;
+  private static final long     serialVersionUI   = 9204910608302112814L;
   
   private static final Log      LOG                = ExoLogger.getLogger(CometDServlet.class);
 
@@ -149,23 +147,23 @@ public class EXoContinuationCometdServlet extends CometDServlet {
       if (clusterEnabled) {
         if (OORT_MULTICAST.equals(configType)) {
           OortConfigServlet oConfig = new OortMulticastConfig();
-          oConfig.init(servletConfig);
+          oConfig.init((javax.servlet.ServletConfig) servletConfig);
         } else if (OORT_STATIC.equals(configType)) {
           LOG.info("Cometd configured with cloud {}", getInitParameter(OORT_CONFIG_CLOUD));
 
           OortConfigServlet oConfig = new OortStaticConfig();
-          oConfig.init(servletConfig);
+          oConfig.init((javax.servlet.ServletConfig) servletConfig);
         } else {
           LOG.warn("No valid parameter {} value was set ({}), cometd initialization will fail", EXO_OORT_CONFIG_TYPE, configType);
         }
       } else {
         PropertyManager.setProperty(EXO_OORT_CONFIG_CLOUD, "");
         OortConfigServlet oConfig = new OortStaticConfig();
-        oConfig.init(servletConfig);
+        oConfig.init((javax.servlet.ServletConfig) servletConfig);
       }
 
       setiConfig = new SetiServlet();
-      setiConfig.init(servletConfig);
+      setiConfig.init((javax.servlet.ServletConfig) servletConfig);
 
       ServletContext cometdContext = servletConfig.getServletContext();
       Seti seti = (Seti) cometdContext.getAttribute(Seti.SETI_ATTRIBUTE);
@@ -185,7 +183,7 @@ public class EXoContinuationCometdServlet extends CometDServlet {
   }
 
   @Override
-  protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
+  protected void service(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException,
                                                                                   IOException {
     if (getContainer() == null || getBayeux() == null) {
       final AsyncContext ac = request.startAsync(request, response);
@@ -199,22 +197,20 @@ public class EXoContinuationCometdServlet extends CometDServlet {
         }
 
         try {
-          EXoContinuationCometdServlet.this.service(ac.getRequest(), ac.getResponse());
+          EXoContinuationCometdServlet.this.service((javax.servlet.http.HttpServletRequest) ac.getRequest(),(javax.servlet.http.HttpServletResponse) ac.getResponse());
         } catch (Exception e) {
           LOG.error(e);
         }
       });
     } else {
-      super.service(request, response);      
+      super.service(request, response);
     }
   }
 
-  @Override
   public String getInitParameter(String name) {
     return getServletConfig().getInitParameter(name);
   }
 
-  @Override
   public ServletConfig getServletConfig() {
     EXoContinuationBayeux bayeux = getBayeux();
     if (servletConfig == null) {
@@ -287,7 +283,7 @@ public class EXoContinuationCometdServlet extends CometDServlet {
     private static final long serialVersionUID = 1054209695244836363L;
 
     @Override
-    protected void configureCloud(ServletConfig config, Oort oort) throws Exception {
+    protected void configureCloud(javax.servlet.ServletConfig config, Oort oort) throws Exception {
       if (clusterEnabled) {
         super.configureCloud(config, oort);
       }
@@ -304,7 +300,7 @@ public class EXoContinuationCometdServlet extends CometDServlet {
     private static final long serialVersionUID = 6836833932474627776L;
     
     @Override
-    protected void configureCloud(ServletConfig config, Oort oort) throws Exception {
+    protected void configureCloud(javax.servlet.ServletConfig config, Oort oort) throws Exception {
       if (clusterEnabled) {
         super.configureCloud(config, oort);        
       }

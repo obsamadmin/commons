@@ -23,7 +23,7 @@ import org.exoplatform.resolver.ServletResourceResolver;
 import java.net.URL;
 import java.net.URLConnection;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 public class PlatformServletResourceResolver extends ServletResourceResolver {
     public PlatformServletResourceResolver(ServletContext context, String scheme) {

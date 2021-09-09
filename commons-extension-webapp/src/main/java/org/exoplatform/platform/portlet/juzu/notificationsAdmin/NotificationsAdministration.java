@@ -19,7 +19,7 @@ package org.exoplatform.platform.portlet.juzu.notificationsAdmin;
 import java.util.*;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.exoplatform.commons.api.notification.channel.AbstractChannel;
 import org.exoplatform.commons.api.notification.channel.ChannelManager;
