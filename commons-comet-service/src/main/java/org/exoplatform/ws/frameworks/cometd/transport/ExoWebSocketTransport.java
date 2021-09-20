@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 eXo Platform SAS.
  *
  * This program is free software; you can redistribute it and/or
@@ -18,17 +18,15 @@ package org.exoplatform.ws.frameworks.cometd.transport;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
-import javax.websocket.CloseReason;
-import javax.websocket.DeploymentException;
-import javax.websocket.EndpointConfig;
-import javax.websocket.Extension;
-import javax.websocket.HandshakeResponse;
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
-import javax.websocket.Session;
-import javax.websocket.server.HandshakeRequest;
-import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.DeploymentException;
+import jakarta.websocket.EndpointConfig;
+import jakarta.websocket.Extension;
+import jakarta.websocket.HandshakeResponse;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.HandshakeRequest;
+import jakarta.websocket.server.ServerContainer;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 import java.io.IOException;
 import java.net.HttpCookie;
@@ -38,17 +36,22 @@ import java.util.*;
 import java.util.concurrent.Executor;
 
 import org.cometd.bayeux.server.BayeuxContext;
-import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.server.AbstractServerTransport;
 import org.cometd.server.BayeuxServerImpl;
-import org.cometd.websocket.server.AbstractWebSocketTransport;
+import org.cometd.server.websocket.common.AbstractWebSocketTransport;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.exoplatform.commons.api.websocket.AbstractConfigurator;
 import org.exoplatform.commons.api.websocket.AbstractEndpoint;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 
-public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
+public class ExoWebSocketTransport extends AbstractWebSocketTransport {
+
+
+  private Log LOG = ExoLogger.getLogger(ExoWebSocketTransport.class);;
+
   public ExoWebSocketTransport(BayeuxServerImpl bayeux) {
     super(bayeux);
   }
@@ -61,9 +64,9 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
     if (context == null)
       throw new IllegalArgumentException("Missing ServletContext");
 
-    String cometdURLMapping = (String) getOption(COMETD_URL_MAPPING);
+    String cometdURLMapping = (String) getOption(COMETD_URL_MAPPING_OPTION);
     if (cometdURLMapping == null)
-      throw new IllegalArgumentException("Missing '" + COMETD_URL_MAPPING + "' parameter");
+      throw new IllegalArgumentException("Missing '" + COMETD_URL_MAPPING_OPTION + "' parameter");
 
     ServerContainer container = (ServerContainer) context.getAttribute(ServerContainer.class.getName());
     if (container == null)
@@ -95,12 +98,12 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
 
   @Override
   public void destroy() {
-    Executor threadPool = getExecutor();
+    Executor threadPool = getBayeux().getExecutor();
     if (threadPool instanceof LifeCycle) {
       try {
         ((LifeCycle) threadPool).stop();
       } catch (Exception x) {
-        _logger.trace("", x);
+        LOG.trace("", x);
       }
     }
     super.destroy();
@@ -117,22 +120,23 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
                       final ServerSession session,
                       String data,
                       final Callback callback) {
-    if (_logger.isDebugEnabled())
-      _logger.debug("Sending {}", data);
+    if (LOG.isDebugEnabled())
+      LOG.debug("Sending {}", data);
 
     // Async write.
-    wsSession.getAsyncRemote().sendText(data, new SendHandler() {
-      @Override
-      public void onResult(SendResult result) {
-        Throwable failure = result.getException();
-        if (failure == null) {
-          callback.succeeded();
-        } else {
-          handleException(wsSession, session, failure);
-          callback.failed(failure);
-        }
+    wsSession.getAsyncRemote().sendText(data, result -> {
+      Throwable failure = result.getException();
+      if (failure == null) {
+        callback.succeeded();
+      } else {
+        handleException(wsSession, session, failure);
+        callback.failed(failure);
       }
     });
+  }
+
+  private void handleException(Session wsSession, ServerSession session, Throwable failure) {
+    LOG.error(failure.getMessage(), failure);
   }
 
   private class WebSocketScheduler extends AbstractEndpoint implements AbstractServerTransport.Scheduler {
@@ -159,34 +163,35 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
 
     @Override
     protected void doClose(Session wsSession, CloseReason closeReason) {
-      delegate.onClose(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
+      delegate.onClose(wsSession, closeReason);
     }
 
     @Override
     protected void doError(Session wsSession, Throwable failure) {
-      delegate.onError(failure);
+      delegate.onError(wsSession, failure);
     }
 
     @Override
     protected void doMessage(Session wsSession, String message) {
-      if (_logger.isDebugEnabled())
-        _logger.debug("WebSocket Text message on {}/{}",
+      if (LOG.isDebugEnabled())
+        LOG.debug("WebSocket Text message on {}/{}",
                       ExoWebSocketTransport.this.hashCode(),
                       hashCode());
-      delegate.onMessage(wsSession, message);
+      // we set the boolean to true as it will be considered the last message (in case we send one message)
+      delegate.onMessage(message, true);
     }
 
     @Override
     protected void doMessage(Session wsSession, String message, boolean arg1) {   
-      if (_logger.isDebugEnabled())
-        _logger.debug("WebSocket Text message on {}/{}",
+      if (LOG.isDebugEnabled())
+        LOG.debug("WebSocket Text message on {}/{}",
                       ExoWebSocketTransport.this.hashCode(),
                       hashCode());
-      delegate.onMessage(wsSession, message);
+      delegate.onMessage(message, arg1);
     }
   }
   
-  private class WSSchedulerDelegate extends AbstractWebSocketScheduler {
+  private class WSSchedulerDelegate extends WebSocketScheduler {
     private Session session;
     
     public WSSchedulerDelegate(WebSocketContext context) {
@@ -194,35 +199,35 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
     }
     
     @Override
-    protected void onClose(int code, String reason) {
+    public void onClose(Session session, CloseReason reason) {
       // workaround to expand method visbility
-      super.onClose(code, reason);
+      super.onClose(session, reason);
     }
 
     @Override
-    protected void onError(Throwable failure) {
+    public void onError(Session session, Throwable failure) {
       // workaround to expand method visbility
-      super.onError(failure);
+      super.onError(session, failure);
     }
 
     @Override
-    protected void onMessage(Session wsSession, String data) {
+    public void onMessage(String message, boolean arg) {
       // workaround to expand method visbility
-      super.onMessage(wsSession, data);
+      super.onMessage(message, arg);
     }
 
     @Override
-    protected void close(final int code, String reason) {
+    protected void doClose(Session session, CloseReason closeReason) {
       try {
-        session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason));
+        session.close(closeReason);
       } catch (IOException x) {
-        _logger.trace("Could not close WebSocket session " + session, x);
+        LOG.trace("Could not close WebSocket session " + session, x);
       }
     }
 
     @Override
-    protected void schedule(boolean timeout, ServerMessage.Mutable expiredConnectReply) {
-      schedule(session, timeout, expiredConnectReply);
+    public void schedule() {
+
     }
     
     public void setSession(Session session) {
@@ -365,6 +370,11 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
     }
 
     @Override
+    public String getContextPath() {
+      return null;
+    }
+
+    @Override
     public String getURL() {
       return url;
     }
@@ -372,6 +382,16 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
     @Override
     public List<Locale> getLocales() {
       return locales;
+    }
+
+    @Override
+    public String getProtocol() {
+      return null;
+    }
+
+    @Override
+    public boolean isSecure() {
+      return false;
     }
 
     private List<Locale> retrieveLocales(Map<String, Object> userProperties) {
@@ -414,7 +434,7 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
     public String getNegotiatedSubprotocol(List<String> supported, List<String> requested) {
       if (protocolMatches = checkProtocol(supported, requested))
         return super.getNegotiatedSubprotocol(supported, requested);
-      _logger.warn("Could not negotiate WebSocket SubProtocols: server{} != client{}",
+      LOG.warn("Could not negotiate WebSocket SubProtocols: server{} != client{}",
                    supported,
                    requested);
       return null;
@@ -434,6 +454,18 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport<Session> {
       if (!protocolMatches)
         throw new InstantiationException("Could not negotiate WebSocket SubProtocols");
       return (T) new WebSocketScheduler(bayeuxContext);
+    }
+    private boolean checkProtocol(List<String> serverProtocols, List<String> clientProtocols) {
+      if (serverProtocols.isEmpty()) {
+        return true;
+      }
+
+      for (String clientProtocol : clientProtocols) {
+        if (serverProtocols.contains(clientProtocol)) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 }

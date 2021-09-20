@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.cometd.bayeux.server.BayeuxServer;
-import org.cometd.client.transport.LongPollingTransport;
 import org.cometd.oort.Oort;
 import org.cometd.oort.OortConfigServlet;
 import org.cometd.oort.OortMulticastConfigServlet;
@@ -42,8 +41,7 @@ import org.cometd.oort.OortStaticConfigServlet;
 import org.cometd.oort.Seti;
 import org.cometd.oort.SetiServlet;
 import org.cometd.server.CometDServlet;
-import org.cometd.websocket.client.WebSocketTransport;
-import org.eclipse.jetty.client.HttpClient;
+import org.cometd.server.websocket.javax.WebSocketTransport;
 import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.container.ExoContainer;
@@ -183,8 +181,8 @@ public class EXoContinuationCometdServlet extends CometDServlet {
   }
 
   @Override
-  protected void service(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException,
-                                                                                  IOException {
+  protected void service(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) throws ServletException,
+          IOException {
     if (getContainer() == null || getBayeux() == null) {
       final AsyncContext ac = request.startAsync(request, response);
       ac.start(() -> {
@@ -262,7 +260,7 @@ public class EXoContinuationCometdServlet extends CometDServlet {
     ServletConfig config = getServletConfig();
     String transport = config.getInitParameter("transports");
     if (transport == null || !transport.contains(WebSocketTransport.class.getName())) {
-      oort.getClientTransportFactories().add(new LongPollingTransport.Factory(new HttpClient()));
+      oort.getClientTransportFactories().add(new org.cometd.client.websocket.javax.WebSocketTransport.Factory());
     }
     return oort;
   }
@@ -283,7 +281,7 @@ public class EXoContinuationCometdServlet extends CometDServlet {
     private static final long serialVersionUID = 1054209695244836363L;
 
     @Override
-    protected void configureCloud(javax.servlet.ServletConfig config, Oort oort) throws Exception {
+    protected void configureCloud(ServletConfig config, Oort oort) throws Exception {
       if (clusterEnabled) {
         super.configureCloud(config, oort);
       }
@@ -300,7 +298,7 @@ public class EXoContinuationCometdServlet extends CometDServlet {
     private static final long serialVersionUID = 6836833932474627776L;
     
     @Override
-    protected void configureCloud(javax.servlet.ServletConfig config, Oort oort) throws Exception {
+    protected void configureCloud(ServletConfig config, Oort oort) throws Exception {
       if (clusterEnabled) {
         super.configureCloud(config, oort);        
       }
