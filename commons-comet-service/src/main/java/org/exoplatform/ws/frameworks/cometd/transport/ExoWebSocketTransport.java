@@ -35,17 +35,23 @@ import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.Executor;
 
+import org.cometd.bayeux.Promise;
 import org.cometd.bayeux.server.BayeuxContext;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.server.AbstractServerTransport;
 import org.cometd.server.BayeuxServerImpl;
+import org.cometd.server.websocket.common.AbstractWebSocketEndPoint;
 import org.cometd.server.websocket.common.AbstractWebSocketTransport;
+import org.cometd.server.websocket.javax.WebSocketEndPoint;
+import org.cometd.server.websocket.javax.WebSocketTransport;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.exoplatform.commons.api.websocket.AbstractConfigurator;
 import org.exoplatform.commons.api.websocket.AbstractEndpoint;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+
+import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
 
 public class ExoWebSocketTransport extends AbstractWebSocketTransport {
 
@@ -83,7 +89,7 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport {
     List<String> protocols = protocol == null ? null : Collections.singletonList(protocol);
 
     for (String mapping : normalizeURLMapping(cometdURLMapping)) {
-      ServerEndpointConfig config = ServerEndpointConfig.Builder.create(WebSocketScheduler.class,
+      ServerEndpointConfig config = ServerEndpointConfig.Builder.create(AbstractWebSocketEndPoint.class,
                                                                         mapping)
                                                                 .subprotocols(protocols)
                                                                 .configurator(new Configurator(context))
@@ -137,102 +143,6 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport {
 
   private void handleException(Session wsSession, ServerSession session, Throwable failure) {
     LOG.error(failure.getMessage(), failure);
-  }
-
-  private class WebSocketScheduler extends AbstractEndpoint implements AbstractServerTransport.Scheduler {
-    private WSSchedulerDelegate delegate;
-
-    private WebSocketScheduler(WebSocketContext context) {
-      delegate = new WSSchedulerDelegate(context);
-    }
-
-    @Override
-    public void cancel() {
-      delegate.cancel();
-    }
-
-    @Override
-    public void schedule() {
-      delegate.schedule();
-    }
-    
-    @Override
-    protected void doOpen(Session wsSession, EndpointConfig config) {
-      delegate.setSession(wsSession);
-    }
-
-    @Override
-    protected void doClose(Session wsSession, CloseReason closeReason) {
-      delegate.onClose(wsSession, closeReason);
-    }
-
-    @Override
-    protected void doError(Session wsSession, Throwable failure) {
-      delegate.onError(wsSession, failure);
-    }
-
-    @Override
-    protected void doMessage(Session wsSession, String message) {
-      if (LOG.isDebugEnabled())
-        LOG.debug("WebSocket Text message on {}/{}",
-                      ExoWebSocketTransport.this.hashCode(),
-                      hashCode());
-      // we set the boolean to true as it will be considered the last message (in case we send one message)
-      delegate.onMessage(message, true);
-    }
-
-    @Override
-    protected void doMessage(Session wsSession, String message, boolean arg1) {   
-      if (LOG.isDebugEnabled())
-        LOG.debug("WebSocket Text message on {}/{}",
-                      ExoWebSocketTransport.this.hashCode(),
-                      hashCode());
-      delegate.onMessage(message, arg1);
-    }
-  }
-  
-  private class WSSchedulerDelegate extends WebSocketScheduler {
-    private Session session;
-    
-    public WSSchedulerDelegate(WebSocketContext context) {
-      super(context);
-    }
-    
-    @Override
-    public void onClose(Session session, CloseReason reason) {
-      // workaround to expand method visbility
-      super.onClose(session, reason);
-    }
-
-    @Override
-    public void onError(Session session, Throwable failure) {
-      // workaround to expand method visbility
-      super.onError(session, failure);
-    }
-
-    @Override
-    public void onMessage(String message, boolean arg) {
-      // workaround to expand method visbility
-      super.onMessage(message, arg);
-    }
-
-    @Override
-    protected void doClose(Session session, CloseReason closeReason) {
-      try {
-        session.close(closeReason);
-      } catch (IOException x) {
-        LOG.trace("Could not close WebSocket session " + session, x);
-      }
-    }
-
-    @Override
-    public void schedule() {
-
-    }
-    
-    public void setSession(Session session) {
-      this.session = session;
-    }
   }
 
   private class WebSocketContext implements BayeuxContext {
@@ -453,7 +363,7 @@ public class ExoWebSocketTransport extends AbstractWebSocketTransport {
         throw new InstantiationException("Transport not allowed");
       if (!protocolMatches)
         throw new InstantiationException("Could not negotiate WebSocket SubProtocols");
-      return (T) new WebSocketScheduler(bayeuxContext);
+      return (T) new WebSocketEndPoint(new WebSocketTransport(getBayeux()), bayeuxContext);
     }
     private boolean checkProtocol(List<String> serverProtocols, List<String> clientProtocols) {
       if (serverProtocols.isEmpty()) {
