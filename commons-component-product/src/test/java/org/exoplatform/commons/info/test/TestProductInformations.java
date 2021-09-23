@@ -20,8 +20,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.codec.binary.StringUtils;
-
+import junit.framework.TestCase;
 import org.exoplatform.commons.api.settings.SettingService;
 import org.exoplatform.commons.api.settings.SettingValue;
 import org.exoplatform.commons.api.settings.data.Context;
@@ -31,9 +30,8 @@ import org.exoplatform.container.PortalContainer;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
-import org.exoplatform.test.BasicTestCase;
 
-public class TestProductInformations extends BasicTestCase {
+public class TestProductInformations extends TestCase {
 
   private static final String    OLD_PRODUCT_INFORMATIONS_FILE = "classpath:/conf/product_old.properties";
 
