@@ -287,6 +287,7 @@
         self.handleFileUpload(files, self.$parentDialog);
       });
       this.$parentDialog.find(".selectImageAlign .btn-group .btn[data-align=Left]").addClass("active");
+      console.warn('widget', widgetData);
       if(widgetData  && widgetData.src ) {
         this.displayImage(widgetData.src);
         if( widgetData.alt ) {
