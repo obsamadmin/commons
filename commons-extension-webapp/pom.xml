@@ -10,7 +10,6 @@
   <packaging>war</packaging>
   <name>eXo PLF:: Commons - Commons Extension Webapp</name>
   <properties>
-    <!-- Use version required by Juzu Less plugin -->
     <org.antlr.runtime.version>3.4</org.antlr.runtime.version>
   </properties>
 
@@ -57,40 +56,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Juzu -->
-    <dependency>
-      <groupId>org.juzu</groupId>
-      <artifactId>juzu-core</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.juzu</groupId>
-      <artifactId>juzu-plugins-validation</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.juzu</groupId>
-      <artifactId>juzu-plugins-less</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.juzu</groupId>
-      <artifactId>juzu-plugins-less4j</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.juzu</groupId>
-      <artifactId>juzu-plugins-webjars</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.juzu</groupId>
-      <artifactId>juzu-plugins-portlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.juzu</groupId>
-      <artifactId>juzu-plugins-upload</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>commons-juzu</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.component.resources</artifactId>
